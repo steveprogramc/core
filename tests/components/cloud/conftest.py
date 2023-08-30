@@ -1,12 +1,56 @@
 """Fixtures for cloud tests."""
-from unittest.mock import patch
+from collections.abc import AsyncGenerator
+from typing import Any
+from unittest.mock import DEFAULT, MagicMock, patch
 
+from hass_nabucasa.const import DEFAULT_SERVERS, DEFAULT_VALUES
 import jwt
 import pytest
 
-from homeassistant.components.cloud import const, prefs
+from homeassistant.components.cloud import CloudClient, const, prefs
 
 from . import mock_cloud, mock_cloud_prefs
+
+
+@pytest.fixture(name="cloud")
+async def cloud_fixture() -> AsyncGenerator[MagicMock, None]:
+    """Mock the cloud object."""
+    with patch(
+        "homeassistant.components.cloud.Cloud", autospec=True
+    ) as mock_cloud_class:
+        mock_cloud = mock_cloud_class.return_value
+        mock_cloud.google_report_state = MagicMock()
+        mock_cloud.cloudhooks = MagicMock()
+        mock_cloud.remote = MagicMock()
+        mock_cloud.auth = MagicMock()
+        mock_cloud.iot = MagicMock()
+        mock_cloud.voice = MagicMock()
+
+        def set_up_mock_cloud(
+            cloud_client: CloudClient, mode: str, **kwargs: Any
+        ) -> DEFAULT:
+            """Set up mock cloud."""
+            mock_cloud.client = cloud_client
+
+            servers = {
+                f"{name}_server": server
+                for name, server in DEFAULT_SERVERS[mode].items()
+            }
+            default_values = DEFAULT_VALUES[mode]
+            mock_cloud.configure_mock(**default_values, **servers)
+
+            mock_cloud.mode = mode
+            mock_cloud.id_token = "test_id_token"
+            mock_cloud.access_token = "test_access_token"
+            mock_cloud.refresh_token = "test_refresh_token"
+            mock_cloud.started = None
+            mock_cloud.client.cloud = DEFAULT
+
+            return DEFAULT
+
+        mock_cloud_class.side_effect = set_up_mock_cloud
+
+        yield mock_cloud
 
 
 @pytest.fixture(autouse=True)
