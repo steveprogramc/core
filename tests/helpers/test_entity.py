@@ -1559,3 +1559,36 @@ async def test_suggest_report_issue_custom_component(
 
     suggestion = mock_entity._suggest_report_issue()
     assert suggestion == "create a bug report at httpts://some_url"
+
+
+@pytest.mark.parametrize(("property", "values"), [("attribution", ["abcd", "efgh"])])
+async def test_cached_entity_properties(
+    hass: HomeAssistant, property: str, values: Any
+) -> None:
+    """Test entity properties are cached."""
+    ent = entity.Entity()
+    setattr(ent, f"_attr_{property}", values[0])
+    assert getattr(ent, property) == values[0]
+
+    # Test update
+    setattr(ent, f"_attr_{property}", values[1])
+    assert getattr(ent, property) == values[1]
+
+
+async def test_cached_entity_property_class_attribute(hass: HomeAssistant) -> None:
+    """Test entity properties on class level work."""
+    property = "attribution"
+    values = ["abcd", "efgh"]
+
+    class EntityWithClassAttribute(entity.Entity):
+        _attr_attribution = values[0]
+
+    ent1 = EntityWithClassAttribute()
+    ent2 = EntityWithClassAttribute()
+    assert getattr(ent1, property) == values[0]
+    assert getattr(ent2, property) == values[0]
+
+    # Test update
+    setattr(ent1, f"_attr_{property}", values[1])
+    assert getattr(ent1, property) == values[1]
+    assert getattr(ent2, property) == values[0]
