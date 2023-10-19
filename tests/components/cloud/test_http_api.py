@@ -152,7 +152,12 @@ async def test_login_view_create_pipeline(hass: HomeAssistant, cloud_client) -> 
     assert req.status == HTTPStatus.OK
     result = await req.json()
     assert result == {"success": True, "cloud_pipeline": "12345"}
-    create_pipeline_mock.assert_awaited_once_with(hass, "cloud", "cloud")
+    create_pipeline_mock.assert_awaited_once_with(
+        hass,
+        stt_engine_id="cloud",
+        tts_engine_id="cloud",
+        pipeline_name="Home Assistant Cloud",
+    )
 
 
 async def test_login_view_create_pipeline_fail(
@@ -174,7 +179,12 @@ async def test_login_view_create_pipeline_fail(
     assert req.status == HTTPStatus.OK
     result = await req.json()
     assert result == {"success": True, "cloud_pipeline": None}
-    create_pipeline_mock.assert_awaited_once_with(hass, "cloud", "cloud")
+    create_pipeline_mock.assert_awaited_once_with(
+        hass,
+        stt_engine_id="cloud",
+        tts_engine_id="cloud",
+        pipeline_name="Home Assistant Cloud",
+    )
 
 
 async def test_login_view_random_exception(cloud_client) -> None:
