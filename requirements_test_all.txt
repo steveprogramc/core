@@ -795,6 +795,7 @@ hlk-sw16==0.0.9
 # homeassistant.components.pi_hole
 hole==0.8.0
 
+# homeassistant.components.holidays
 # homeassistant.components.workday
 holidays==0.35
 

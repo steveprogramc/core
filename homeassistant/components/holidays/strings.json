@@ -1,0 +1,48 @@
+{
+  "title": "Holidays",
+  "config": {
+    "abort": {
+      "already_configured": "Holidays has already been setup with chosen configuration"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "country": "Country"
+        }
+      },
+      "options": {
+        "description": "Set additional options for country {country}",
+        "data": {
+          "province": "Subdivision of country",
+          "language": "Language for named holidays"
+        },
+        "data_description": {
+          "province": "State, Territory, Province, Region of Country",
+          "language": "Choose the language you want to configure named holidays after"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "description": "Change additional options for configured country {country}",
+        "data": {
+          "province": "[%key:component::holidays::config::step::options::data::province%]",
+          "language": "[%key:component::holidays::config::step::options::data::language%]"
+        },
+        "data_description": {
+          "province": "[%key:component::holidays::config::step::options::data_description::province%]",
+          "language": "[%key:component::holidays::config::step::options::data_description::language%]"
+        }
+      }
+    }
+  },
+  "selector": {
+    "province": {
+      "options": {
+        "none": "No subdivision"
+      }
+    }
+  }
+}

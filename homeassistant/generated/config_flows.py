@@ -198,6 +198,7 @@ FLOWS = {
         "hisense_aehw4a1",
         "hive",
         "hlk_sw16",
+        "holidays",
         "home_connect",
         "home_plus_control",
         "homeassistant_sky_connect",
