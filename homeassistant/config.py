@@ -1047,16 +1047,20 @@ async def async_process_component_config(
             if (log_message := p_ex.log_message) is None:
                 if TYPE_CHECKING:
                     assert p_name is not None and p_config is not None
-                message = format_schema_error(ex, p_name, p_config, link)
+                if isinstance(ex, vol.Invalid):
+                    log_message = format_schema_error(ex, p_name, p_config, link)
+                else:
+                    if TYPE_CHECKING:
+                        assert isinstance(ex, HomeAssistantError)
+                    log_message = format_homeassistant_error(ex, p_name, p_config, link)
                 config_file = getattr(p_config, "__config_file__", "?")
                 line = getattr(p_config, "__line__", "?")
-                log_message, _ = message
                 config_error_messages.append(
                     (domain, p_ex, log_message, config_file, line)
                 )
             else:
                 general_error_messages.append((domain, p_ex))
-            _LOGGER.error(log_message, exc_info=ex if p_ex.log_exception else None)
+            _LOGGER.error(log_message, exc_info=p_ex.log_exception)
 
         if not raise_on_failure or not config_exceptions:
             return
@@ -1155,9 +1159,19 @@ async def async_pre_process_component_config(  # noqa: C901
     ):
         try:
             return (await config_validator.async_validate_config(hass, config)), []
-        except (vol.Invalid, HomeAssistantError) as ex:
+        except vol.Invalid as ex:
             ex_info = ConfigExceptionInfo(
                 ex, "config_validation_err", p_name=domain, p_config=config
+            )
+            config_exceptions.append(ex_info)
+            return None, config_exceptions
+        except HomeAssistantError as ex:
+            ex_info = ConfigExceptionInfo(
+                ex,
+                "config_validation_err",
+                p_name=domain,
+                p_config=config,
+                log_exception=True,
             )
             config_exceptions.append(ex_info)
             return None, config_exceptions
