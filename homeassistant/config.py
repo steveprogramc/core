@@ -12,7 +12,6 @@ import os
 from pathlib import Path
 import re
 import shutil
-import sys
 from types import ModuleType
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -999,7 +998,6 @@ def async_process_component_config_errors(
     """Process component configuration errors."""
 
     p_ex: ConfigExceptionInfo
-    ex: Exception | BaseException | None
     config_error_messages: list[tuple[str, ConfigExceptionInfo, str, str, str]] = []
     general_error_messages: list[tuple[str, ConfigExceptionInfo]] = []
     domain = integration.domain
@@ -1055,8 +1053,8 @@ def async_process_component_config_errors(
         }
     else:
         # We can only raise once, so we raise a generic error
-        # based on the last exception that was seen
-        ex = sys.last_value
+        # based on the first exception that was seen
+        ex = config_exception_info[0].ex
         translation_key = "integration_config_error"
         errors = str(len(config_exception_info))
         log_message = (
