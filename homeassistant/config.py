@@ -1062,7 +1062,7 @@ async def async_process_component_config(
             return
 
         placeholders: dict[str, str]
-        if len(config_error_messages) == 1:
+        if len(config_error_messages) == 1 and not general_error_messages:
             domain, p_ex, log_message, config_file, line = config_error_messages[0]
             ex = p_ex.ex
             p_name = p_ex.p_name
@@ -1077,7 +1077,7 @@ async def async_process_component_config(
                 "config_file": config_file,
                 "line": line,
             }
-        elif len(general_error_messages) == 1:
+        elif len(general_error_messages) == 1 and not config_error_messages:
             domain, p_ex = general_error_messages[0]
             ex = p_ex.ex
             translation_key = p_ex.translation_key
