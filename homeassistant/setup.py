@@ -220,7 +220,7 @@ async def _async_setup_component(
     (
         processed_config,
         config_exceptions,
-    ) = await conf_util.async_pre_process_component_config(hass, config, integration)
+    ) = await conf_util.async_process_component_config(hass, config, integration)
     for ex_info in config_exceptions:
         if ex_info.log_message is not None:
             _LOGGER.error(

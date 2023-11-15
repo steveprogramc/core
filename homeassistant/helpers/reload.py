@@ -62,9 +62,10 @@ async def _resetup_platform(
     """Resetup a platform."""
     integration = await async_get_integration(hass, integration_platform)
 
-    conf = await conf_util.async_process_component_config(
+    conf, config_ex = await conf_util.async_process_component_config(
         hass, unprocessed_conf, integration
     )
+    conf_util.async_process_component_config_errors(hass, integration, config_ex)
 
     if not conf:
         return
@@ -170,12 +171,16 @@ async def async_integration_yaml_config(
 ) -> ConfigType | None:
     """Fetch the latest yaml configuration for an integration."""
     integration = await async_get_integration(hass, integration_name)
-    return await conf_util.async_process_component_config(
+    config, config_ex = await conf_util.async_process_component_config(
         hass,
         await conf_util.async_hass_config_yaml(hass),
         integration,
-        raise_on_failure=raise_on_failure,
     )
+    conf_util.async_process_component_config_errors(
+        hass, integration, config_ex, raise_on_failure=raise_on_failure
+    )
+
+    return config
 
 
 @callback

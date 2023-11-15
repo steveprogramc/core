@@ -364,6 +364,25 @@ async def mock_custom_validator_integrations_with_docs(
         )
 
 
+async def help_async_integration_yaml_config(
+    hass: HomeAssistant,
+    config: ConfigType,
+    integration: Integration,
+    raise_on_failure: bool = False,
+) -> ConfigType | None:
+    """Help process component connfig and errors."""
+    config, config_ex = await config_util.async_process_component_config(
+        hass,
+        await config_util.async_hass_config_yaml(hass),
+        integration,
+    )
+    config_util.async_process_component_config_errors(
+        hass, integration, config_ex, raise_on_failure=raise_on_failure
+    )
+
+    return config
+
+
 async def test_create_default_config(hass: HomeAssistant) -> None:
     """Test creation of default config."""
     assert not os.path.isfile(YAML_PATH)
@@ -1436,16 +1455,14 @@ async def test_component_config_exceptions(
         ),
     )
     assert (
-        await config_util.async_process_component_config(
-            hass, {}, integration=test_integration
-        )
+        await help_async_integration_yaml_config(hass, {}, integration=test_integration)
         is None
     )
     assert "ValueError: broken" in caplog.text
     assert "Unknown error calling test_domain config validator" in caplog.text
     caplog.clear()
     with pytest.raises(HomeAssistantError) as ex:
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass, {}, integration=test_integration, raise_on_failure=True
         )
     assert "ValueError: broken" in caplog.text
@@ -1465,14 +1482,14 @@ async def test_component_config_exceptions(
     )
     caplog.clear()
     assert (
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass, {}, integration=test_integration, raise_on_failure=False
         )
         is None
     )
     assert "Invalid config for [test_domain]: broken" in caplog.text
     with pytest.raises(HomeAssistantError) as ex:
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass, {}, integration=test_integration, raise_on_failure=True
         )
     assert "Invalid config for [test_domain]: broken" in str(ex.value)
@@ -1487,7 +1504,7 @@ async def test_component_config_exceptions(
         ),
     )
     assert (
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass,
             {},
             integration=test_integration,
@@ -1497,7 +1514,7 @@ async def test_component_config_exceptions(
     )
     assert "Unknown error calling test_domain CONFIG_SCHEMA" in caplog.text
     with pytest.raises(HomeAssistantError) as ex:
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass,
             {},
             integration=test_integration,
@@ -1517,7 +1534,7 @@ async def test_component_config_exceptions(
             )
         ),
     )
-    assert await config_util.async_process_component_config(
+    assert await help_async_integration_yaml_config(
         hass,
         {"test_domain": {"platform": "test_platform"}},
         integration=test_integration,
@@ -1530,7 +1547,7 @@ async def test_component_config_exceptions(
     ) in caplog.text
     caplog.clear()
     with pytest.raises(HomeAssistantError) as ex:
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass,
             {"test_domain": {"platform": "test_platform"}},
             integration=test_integration,
@@ -1562,7 +1579,7 @@ async def test_component_config_exceptions(
             )
         ),
     ):
-        assert await config_util.async_process_component_config(
+        assert await help_async_integration_yaml_config(
             hass,
             {"test_domain": {"platform": "test_platform"}},
             integration=test_integration,
@@ -1575,7 +1592,7 @@ async def test_component_config_exceptions(
         )
         caplog.clear()
         with pytest.raises(HomeAssistantError) as ex:
-            assert await config_util.async_process_component_config(
+            assert await help_async_integration_yaml_config(
                 hass,
                 {"test_domain": {"platform": "test_platform"}},
                 integration=test_integration,
@@ -1608,7 +1625,7 @@ async def test_component_config_exceptions(
             get_platform=Mock(side_effect=import_error)
         ),
     ):
-        assert await config_util.async_process_component_config(
+        assert await help_async_integration_yaml_config(
             hass,
             {"test_domain": {"platform": "test_platform"}},
             integration=test_integration,
@@ -1620,7 +1637,7 @@ async def test_component_config_exceptions(
         )
         caplog.clear()
         with pytest.raises(HomeAssistantError) as ex:
-            assert await config_util.async_process_component_config(
+            assert await help_async_integration_yaml_config(
                 hass,
                 {"test_domain": {"platform": "test_platform"}},
                 integration=test_integration,
@@ -1652,7 +1669,7 @@ async def test_component_config_exceptions(
         ),
     )
     assert (
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass,
             {"test_domain": {}},
             integration=test_integration,
@@ -1665,7 +1682,7 @@ async def test_component_config_exceptions(
         in caplog.text
     )
     with pytest.raises(HomeAssistantError) as ex:
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass,
             {"test_domain": {}},
             integration=test_integration,
@@ -1690,7 +1707,7 @@ async def test_component_config_exceptions(
         ),
     )
     assert (
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass,
             {"test_domain": {}},
             integration=test_integration,
@@ -1700,7 +1717,7 @@ async def test_component_config_exceptions(
     )
     assert "Unable to import test_domain: No such file or directory" in caplog.text
     with pytest.raises(HomeAssistantError) as ex:
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass,
             {"test_domain": {}},
             integration=test_integration,
@@ -1867,7 +1884,7 @@ async def test_component_config_validation_error(
         "custom_validator_bad_2",
     ]:
         integration = await async_get_integration(hass, domain)
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass,
             config,
             integration=integration,
@@ -1921,7 +1938,7 @@ async def test_component_config_validation_error_with_docs(
         "custom_validator_bad_2",
     ]:
         integration = await async_get_integration(hass, domain)
-        await config_util.async_process_component_config(
+        await help_async_integration_yaml_config(
             hass,
             config,
             integration=integration,
