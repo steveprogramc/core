@@ -1022,7 +1022,7 @@ def async_process_component_config_errors(
             config_error_messages.append((domain, p_ex, log_message, config_file, line))
         else:
             general_error_messages.append((domain, p_ex))
-        _LOGGER.error(log_message, exc_info=p_ex.log_exception)
+        _LOGGER.error(log_message, exc_info=p_ex.ex if p_ex.log_exception else None)
 
     if not raise_on_failure or not config_exception_info:
         return

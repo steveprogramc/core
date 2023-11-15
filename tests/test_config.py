@@ -370,10 +370,10 @@ async def help_async_integration_yaml_config(
     integration: Integration,
     raise_on_failure: bool = False,
 ) -> ConfigType | None:
-    """Help process component connfig and errors."""
+    """Help process component config and errors."""
     config, config_ex = await config_util.async_process_component_config(
         hass,
-        await config_util.async_hass_config_yaml(hass),
+        config,
         integration,
     )
     config_util.async_process_component_config_errors(

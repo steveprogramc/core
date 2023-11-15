@@ -225,7 +225,7 @@ async def _async_setup_component(
         if ex_info.log_message is not None:
             _LOGGER.error(
                 ex_info.log_message,
-                exc_info=ex_info.log_exception,
+                exc_info=ex_info.ex if ex_info.log_exception else None,
             )
             continue
         if TYPE_CHECKING:
