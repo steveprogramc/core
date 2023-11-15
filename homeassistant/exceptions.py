@@ -26,6 +26,10 @@ class HomeAssistantError(Exception):
         self.translation_placeholders = translation_placeholders
 
 
+class ConfigValidationError(HomeAssistantError):
+    """A validation exception occurred when validation the configuration."""
+
+
 class ServiceValidationError(HomeAssistantError):
     """A validation exception occurred when calling a service."""
 

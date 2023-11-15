@@ -8,7 +8,7 @@ from datetime import timedelta
 import logging.handlers
 from timeit import default_timer as timer
 from types import ModuleType
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from . import config as conf_util, core, loader, requirements
 from .config import async_notify_setup_error
@@ -217,9 +217,23 @@ async def _async_setup_component(
         log_error(f"Unable to import component: {err}", err)
         return False
 
-    processed_config = await conf_util.async_process_component_config(
-        hass, config, integration
-    )
+    (
+        processed_config,
+        config_exceptions,
+    ) = await conf_util.async_pre_process_component_config(hass, config, integration)
+    for ex_info in config_exceptions:
+        if ex_info.log_message is not None:
+            _LOGGER.error(ex_info.log_message, exc_info=ex_info.ex)
+            continue
+        if TYPE_CHECKING:
+            assert ex_info.p_name is not None and ex_info.p_config is not None
+        conf_util.async_log_schema_error(
+            ex_info.ex,
+            ex_info.p_name,
+            ex_info.p_config,
+            hass,
+            integration.documentation,
+        )
 
     if processed_config is None:
         log_error("Invalid config.")

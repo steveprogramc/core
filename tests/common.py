@@ -33,7 +33,7 @@ from homeassistant.components import device_automation, persistent_notification 
 from homeassistant.components.device_automation import (  # noqa: F401
     _async_get_device_automation_capabilities as async_get_device_automation_capabilities,
 )
-from homeassistant.config import async_process_component_config
+from homeassistant.config import async_pre_process_component_config
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import (
     DEVICE_DEFAULT_NAME,
@@ -984,7 +984,9 @@ def assert_setup_component(count, domain=None):
     async def mock_psc(hass, config_input, integration):
         """Mock the prepare_setup_component to capture config."""
         domain_input = integration.domain
-        res = await async_process_component_config(hass, config_input, integration)
+        res, exceptions = await async_pre_process_component_config(
+            hass, config_input, integration
+        )
         config[domain_input] = None if res is None else res.get(domain_input)
         _LOGGER.debug(
             "Configuration for %s, Validated: %s, Original %s",
@@ -992,10 +994,10 @@ def assert_setup_component(count, domain=None):
             config[domain_input],
             config_input.get(domain_input),
         )
-        return res
+        return res, exceptions
 
     assert isinstance(config, dict)
-    with patch("homeassistant.config.async_process_component_config", mock_psc):
+    with patch("homeassistant.config.async_pre_process_component_config", mock_psc):
         yield config
 
     if domain is None:
