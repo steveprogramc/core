@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import sys
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Literal, overload
 from urllib.parse import urlparse
@@ -1036,6 +1037,7 @@ async def async_process_component_config(
     ) -> None:
         """Log and optionally raise an exception for an invalid config."""
         p_ex: ConfigExceptionInfo
+        ex: Exception | BaseException | None
         config_error_messages: list[tuple[str, ConfigExceptionInfo, str, str, str]] = []
         general_error_messages: list[tuple[str, ConfigExceptionInfo]] = []
         domain = integration.domain
@@ -1093,7 +1095,8 @@ async def async_process_component_config(
             }
         else:
             # We can only raise once, so we raise a generic error
-            ex = Exception()
+            # based on the last exception that was seen
+            ex = sys.last_value
             translation_key = "integration_config_error"
             errors = str(len(config_exceptions))
             log_message = (
@@ -1123,7 +1126,9 @@ async def async_pre_process_component_config(  # noqa: C901
     config: ConfigType,
     integration: Integration,
 ) -> tuple[ConfigType | None, list[ConfigExceptionInfo]]:
-    """Check component configuration and return processed configuration.
+    """Check component configuration.
+
+    Returns processed configuration and exception information.
 
     This method must be run in the event loop.
     """
